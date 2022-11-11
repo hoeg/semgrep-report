@@ -1,11 +1,19 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Semgrep reporting'
+description: 'Report Semgrep findimgs to PRs with suggested changes'
+author: 'Peter Hoeg Steffensen'
 inputs:
-  milliseconds: # change this
+  report_path:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: Path to the json output of the semgrep scan
+  github_secret:
+    required: true
+    description: Action secret
+  issue_number:
+    required: true
+  repo_owner:
+    required: true
+  repo:
+    required: true
 runs:
   using: 'node16'
   main: 'dist/index.js'
