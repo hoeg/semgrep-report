@@ -104,6 +104,7 @@ function run() {
             const content = yield fs_1.promises.readFile(report_path, 'utf-8');
             const params = comments.parseParams(content);
             for (const p of params) {
+                core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
                 octokit.rest.pulls.createReviewComment({
                     owner,
                     repo,

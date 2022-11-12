@@ -16,13 +16,13 @@ jobs:
       - run: |
           npm run all
   #test: # make sure the action works on a clean machine without building
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - uses: actions/checkout@v3
-  #    - uses: ./
-  #      with:
-  #        github_secret: ${{secrets.GITHUB_TOKEN}}
-  #        report_path: __tests__/semgrep.json
-  #        issue_number: ${{github.event.number}}
-  #        repo_owner: ${{github.repository_owner}}
-  #        repo: ${{github.repository}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          github_secret: ${{secrets.GITHUB_TOKEN}}
+          report_path: __tests__/semgrep.json
+          issue_number: ${{github.event.number}}
+          repo_owner: ${{github.repository_owner}}
+          repo: ${{github.repository}}
