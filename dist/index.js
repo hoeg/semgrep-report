@@ -108,7 +108,7 @@ function run() {
                 const owner = repository[0];
                 const repo = repository[1];
                 core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
-                octokit.rest.pulls.createReviewComment({
+                yield octokit.rest.pulls.createReviewComment({
                     owner,
                     repo,
                     pull_number: issue_number,
