@@ -22,7 +22,7 @@ async function run(): Promise<void> {
       let repository = r.split("/");
       let owner: string = repository[0];
       let repo: string = repository[1];
-      core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`)
+      core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, ${commitID} ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`)
       octokit.rest.pulls.createReviewComment({
         owner: owner,
         repo: repo,
