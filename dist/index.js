@@ -97,6 +97,7 @@ function run() {
             const report_path = core.getInput('report_path');
             const issue_number = +core.getInput('issue_number');
             const r = core.getInput('repo');
+            const commitID = core.getInput("commit_id");
             const secret = core.getInput('github_secret');
             core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
             const octokit = github.getOctokit(secret);
@@ -108,9 +109,10 @@ function run() {
                 let repo = repository[1];
                 core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
                 octokit.rest.pulls.createReviewComment({
-                    owner,
-                    repo,
+                    owner: owner,
+                    repo: repo,
                     pull_number: issue_number,
+                    commit_id: commitID,
                     body: p['body'],
                     path: p['path'],
                     start_line: p['start_line'],

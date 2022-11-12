@@ -11,6 +11,8 @@ inputs:
   issue_number:
     required: true
     description: PR number to write the report to
+  commit_id:
+    required: true
   repo:
     required: true
     description: This repository
