@@ -25,5 +25,5 @@ jobs:
           github_secret: ${{secrets.GITHUB_TOKEN}}
           report_path: __tests__/semgrep.json
           issue_number: ${{github.event.number}}
-          commit_id: ${{env.GITHUB_SHA}}
+          commit_id: ${{github.sha}}
           repo: ${{github.repository}}
