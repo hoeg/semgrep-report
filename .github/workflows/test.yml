@@ -16,6 +16,7 @@ jobs:
       - run: |
           npm run all
   test: # make sure the action works on a clean machine without building
+    if: ${{ github.event.number != 0 }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
