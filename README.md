@@ -95,7 +95,11 @@ You can now validate the action by referencing `./` in a workflow in your repo (
 ```yaml
 uses: ./
 with:
-  milliseconds: 1000
+  github_secret: ${{secrets.GITHUB_TOKEN}}
+  report_path: semgrep.json
+  issue_number: ${{github.event.number}}
+  repo_owner: ${{github.repository_owner}}
+  repo: ${{github.repository}}
 ```
 
 See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
