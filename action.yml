@@ -10,10 +10,10 @@ inputs:
     description: Action secret
   issue_number:
     required: true
-  repo_owner:
-    required: true
+    description: PR number to write the report to
   repo:
     required: true
+    description: This repository
 runs:
   using: 'node16'
   main: 'dist/index.js'
