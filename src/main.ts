@@ -19,13 +19,13 @@ async function run(): Promise<void> {
     const params = comments.parseParams(content)
 
     for (const p of params) {
-      let repository = r.split("/");
-      let owner: string = repository[0];
-      let repo: string = repository[1];
+      const repository = r.split("/");
+      const owner: string = repository[0];
+      const repo: string = repository[1];
       core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`)
       octokit.rest.pulls.createReviewComment({
-        owner: owner,
-        repo: repo,
+        owner,
+        repo,
         pull_number: issue_number,
         commit_id: commitID,
         body: p['body'],
