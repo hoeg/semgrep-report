@@ -1,5 +1,5 @@
 export function fix(suggestion: string, message: string): string {
-  const comment = `Finding: ${message}\n\nConsider if`
+  const comment = `Finding: ${message}\n\nConsider if\n`
   return comment.concat(
     '```suggestion\n',
     suggestion,

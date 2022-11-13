@@ -58,7 +58,7 @@ test('create fix content', async () => {
   const message = ""
   let res = comments.parseParams(input)
   expect(res.length).toBe(1)
-  expect(res[0]["body"]).toBe("Finding: External data is not allowed.\n\nConsider if\`\`\`suggestion\nproposed fix\n\`\`\`\nfixes the issue.")
+  expect(res[0]["body"]).toBe("Finding: External data is not allowed.\n\nConsider if\n\`\`\`suggestion\nproposed fix\n\`\`\`\nfixes the issue.")
 })
 
 test('create finding content', async () => {

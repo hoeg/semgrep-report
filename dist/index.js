@@ -9,7 +9,7 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseParams = exports.finding = exports.fix = void 0;
 function fix(suggestion, message) {
-    const comment = `Finding: ${message}\n\nConsider if`;
+    const comment = `Finding: ${message}\n\nConsider if\n`;
     return comment.concat('```suggestion\n', suggestion, '\n```\n', 'fixes the issue.');
 }
 exports.fix = fix;
