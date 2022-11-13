@@ -8,7 +8,7 @@ async function run(): Promise<void> {
     const report_path: string = core.getInput('report_path')
     const issue_number: number = +core.getInput('issue_number')
     const r: string = core.getInput('repo')
-    const commitID: string = core.getInput("commit_id")
+    const commitID: string = core.getInput('commit_id')
 
     const secret = core.getInput('github_secret')
     core.debug(`Ready to read report semgrep from ${report_path}`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
@@ -18,22 +18,68 @@ async function run(): Promise<void> {
     const content = await fs.readFile(report_path, 'utf-8')
     const params = comments.parseParams(content)
 
+    //lookup files changed
+    const base = github.context.payload.pull_request?.base?.sha
+    const head = github.context.payload.pull_request?.head?.sha
+
+    const response = await octokit.rest.repos.compareCommits({
+      base,
+      head,
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo
+    })
+
+    // Ensure that the request was successful.
+    if (response.status !== 200) {
+      core.setFailed(
+        `The GitHub API for comparing the base and head commits for this ${github.context.eventName} event returned ${response.status}, expected 200. ` +
+          "Please submit an issue on this action's GitHub repo."
+      )
+    }
+
+    // Ensure that the head commit is ahead of the base commit.
+    if (response.data.status !== 'ahead') {
+      core.setFailed(
+        `The head commit for this ${github.context.eventName} event is not ahead of the base commit. ` +
+          "Please submit an issue on this action's GitHub repo."
+      )
+    }
+
+    const changedFiles = response.data.files
+    if (changedFiles === undefined) {
+      core.setFailed(`no files changed`)
+      return
+    }
+    const filenames: string[] = []
+    for (const f of changedFiles) {
+      core.debug(`found file ${f.filename} -`)
+      filenames.push(f.filename)
+    }
+
     for (const p of params) {
-      const repository = r.split("/");
-      const owner: string = repository[0];
-      const repo: string = repository[1];
-      core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`)
-      const res = await octokit.rest.pulls.createReviewComment({
-        owner,
-        repo,
-        pull_number: issue_number,
-        commit_id: commitID,
-        body: p['body'],
-        path: p['path'],
-        start_line: p['start_line'],
-        line: p['end_line']
-      })
-      core.debug(`Returned: ${res}`)
+      if (filenames.includes(p['path'])) {
+        const repository = r.split('/')
+        const owner: string = repository[0]
+        const repo: string = repository[1]
+        core.debug(
+          `create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`
+        )
+        await octokit.rest.pulls.createReviewComment({
+          owner,
+          repo,
+          pull_number: issue_number,
+          commit_id: commitID,
+          body: p['body'],
+          path: p['path'],
+          start_line: p['start_line'],
+          line: p['end_line']
+        })
+      } else {
+        // create issue
+        core.info(
+          `Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`
+        )
+      }
     }
     //core.setOutput('time', new Date().toTimeString())
   } catch (error) {

@@ -9,7 +9,7 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseParams = exports.finding = exports.fix = void 0;
 function fix(suggestion, message) {
-    const comment = `Finding: ${message}\n\nConsider if`;
+    const comment = `Finding: ${message}\n\nConsider if\n`;
     return comment.concat('```suggestion\n', suggestion, '\n```\n', 'fixes the issue.');
 }
 exports.fix = fix;
@@ -92,33 +92,68 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const fs_1 = __nccwpck_require__(5747);
 function run() {
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const report_path = core.getInput('report_path');
             const issue_number = +core.getInput('issue_number');
             const r = core.getInput('repo');
-            const commitID = core.getInput("commit_id");
+            const commitID = core.getInput('commit_id');
             const secret = core.getInput('github_secret');
             core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
             const octokit = github.getOctokit(secret);
             const content = yield fs_1.promises.readFile(report_path, 'utf-8');
             const params = comments.parseParams(content);
+            //lookup files changed
+            const base = (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base) === null || _b === void 0 ? void 0 : _b.sha;
+            const head = (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head) === null || _d === void 0 ? void 0 : _d.sha;
+            const response = yield octokit.rest.repos.compareCommits({
+                base,
+                head,
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo
+            });
+            // Ensure that the request was successful.
+            if (response.status !== 200) {
+                core.setFailed(`The GitHub API for comparing the base and head commits for this ${github.context.eventName} event returned ${response.status}, expected 200. ` +
+                    "Please submit an issue on this action's GitHub repo.");
+            }
+            // Ensure that the head commit is ahead of the base commit.
+            if (response.data.status !== 'ahead') {
+                core.setFailed(`The head commit for this ${github.context.eventName} event is not ahead of the base commit. ` +
+                    "Please submit an issue on this action's GitHub repo.");
+            }
+            const changedFiles = response.data.files;
+            if (changedFiles === undefined) {
+                core.setFailed(`no files changed`);
+                return;
+            }
+            const filenames = [];
+            for (const f of changedFiles) {
+                core.debug(`found file ${f.filename} -`);
+                filenames.push(f.filename);
+            }
             for (const p of params) {
-                const repository = r.split("/");
-                const owner = repository[0];
-                const repo = repository[1];
-                core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
-                const res = yield octokit.rest.pulls.createReviewComment({
-                    owner,
-                    repo,
-                    pull_number: issue_number,
-                    commit_id: commitID,
-                    body: p['body'],
-                    path: p['path'],
-                    start_line: p['start_line'],
-                    line: p['end_line']
-                });
-                core.debug(`Returned: ${res}`);
+                if (filenames.includes(p['path'])) {
+                    const repository = r.split('/');
+                    const owner = repository[0];
+                    const repo = repository[1];
+                    core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
+                    yield octokit.rest.pulls.createReviewComment({
+                        owner,
+                        repo,
+                        pull_number: issue_number,
+                        commit_id: commitID,
+                        body: p['body'],
+                        path: p['path'],
+                        start_line: p['start_line'],
+                        line: p['end_line']
+                    });
+                }
+                else {
+                    // create issue
+                    core.info(`Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`);
+                }
             }
             //core.setOutput('time', new Date().toTimeString())
         }
