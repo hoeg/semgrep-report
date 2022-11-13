@@ -72,7 +72,7 @@ async function run(): Promise<void> {
         })
       } else {
         // create issue
-        core.debug(`Path: ${p['path']} no found in ${changedFiles}. Create Issue`)
+        core.info(`Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`)
       }
     }
     //core.setOutput('time', new Date().toTimeString())
