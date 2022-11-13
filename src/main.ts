@@ -18,22 +18,62 @@ async function run(): Promise<void> {
     const content = await fs.readFile(report_path, 'utf-8')
     const params = comments.parseParams(content)
 
+    //lookup files changed
+    let base = github.context.payload.pull_request?.base?.sha
+    let head = github.context.payload.pull_request?.head?.sha
+ 
+    const response = await octokit.rest.repos.compareCommits({
+      base,
+      head,
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo
+    })
+
+    // Ensure that the request was successful.
+    if (response.status !== 200) {
+      core.setFailed(
+        `The GitHub API for comparing the base and head commits for this ${github.context.eventName} event returned ${response.status}, expected 200. ` +
+          "Please submit an issue on this action's GitHub repo."
+      )
+    }
+
+    // Ensure that the head commit is ahead of the base commit.
+    if (response.data.status !== 'ahead') {
+      core.setFailed(
+        `The head commit for this ${github.context.eventName} event is not ahead of the base commit. ` +
+          "Please submit an issue on this action's GitHub repo."
+      )
+    }
+
+    const changedFiles = response.data.files
+    if(changedFiles === undefined) {
+      core.setFailed(`no files changed`)
+      return
+    }
+    for (const f of changedFiles) {
+      core.debug(`found file ${f.filename} -`)
+    }
+
     for (const p of params) {
-      const repository = r.split("/");
-      const owner: string = repository[0];
-      const repo: string = repository[1];
-      core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`)
-      const res = await octokit.rest.pulls.createReviewComment({
-        owner,
-        repo,
-        pull_number: issue_number,
-        commit_id: commitID,
-        body: p['body'],
-        path: p['path'],
-        start_line: p['start_line'],
-        line: p['end_line']
-      })
-      core.debug(`Returned: ${res}`)
+      if(changedFiles?.map(f => (p['path'] === f.filename))) {
+        const repository = r.split("/");
+        const owner: string = repository[0];
+        const repo: string = repository[1];
+        core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`)
+        const res = await octokit.rest.pulls.createReviewComment({
+          owner,
+          repo,
+          pull_number: issue_number,
+          commit_id: commitID,
+          body: p['body'],
+          path: p['path'],
+          start_line: p['start_line'],
+          line: p['end_line']
+        })
+      } else {
+        // create issue
+        core.debug(`Path: ${p['path']} no found in ${changedFiles}. Create Issue`)
+      }
     }
     //core.setOutput('time', new Date().toTimeString())
   } catch (error) {
