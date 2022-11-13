@@ -108,7 +108,7 @@ function run() {
                 const owner = repository[0];
                 const repo = repository[1];
                 core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
-                yield octokit.rest.pulls.createReviewComment({
+                const res = yield octokit.rest.pulls.createReviewComment({
                     owner,
                     repo,
                     pull_number: issue_number,
@@ -118,6 +118,7 @@ function run() {
                     start_line: p['start_line'],
                     line: p['end_line']
                 });
+                core.debug(`Returned: ${res}`);
             }
             //core.setOutput('time', new Date().toTimeString())
         }
