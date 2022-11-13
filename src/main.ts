@@ -50,12 +50,14 @@ async function run(): Promise<void> {
       core.setFailed(`no files changed`)
       return
     }
+    const filenames: string[] = []
     for (const f of changedFiles) {
       core.debug(`found file ${f.filename} -`)
+      filenames.push(f.filename)
     }
 
     for (const p of params) {
-      if (changedFiles?.map(f => p['path'] === f.filename)) {
+      if (filenames.includes(p['path'])) {
         const repository = r.split('/')
         const owner: string = repository[0]
         const repo: string = repository[1]

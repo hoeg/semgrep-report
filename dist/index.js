@@ -128,11 +128,13 @@ function run() {
                 core.setFailed(`no files changed`);
                 return;
             }
+            const filenames = [];
             for (const f of changedFiles) {
                 core.debug(`found file ${f.filename} -`);
+                filenames.push(f.filename);
             }
             for (const p of params) {
-                if (changedFiles === null || changedFiles === void 0 ? void 0 : changedFiles.map(f => p['path'] === f.filename)) {
+                if (filenames.includes(p['path'])) {
                     const repository = r.split('/');
                     const owner = repository[0];
                     const repo = repository[1];
