@@ -121,7 +121,7 @@ function run() {
             }
             // Ensure that the head commit is ahead of the base commit.
             if (response.data.status !== 'ahead') {
-                core.setFailed(`The head commit for this ${github.context.eventName} event is not ahead of the base commit. ` +
+                core.setFailed(`The head commit (${head}) for this ${github.context.eventName} event is not ahead of the base commit (${base}). Got ${response.data.status}.` +
                     "Please submit an issue on this action's GitHub repo.");
             }
             const changedFiles = response.data.files;
