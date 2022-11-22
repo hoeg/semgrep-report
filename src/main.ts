@@ -6,14 +6,14 @@ import {promises as fs} from 'fs'
 async function run(): Promise<void> {
   try {
     const report_path: string = core.getInput('report_path')
-    const issue_number: number = +github.context.payload.event.number
+    const issue_number: number = github.context.issue.number
     const r: string = github.context.repo.repo
     const base = github.context.payload.pull_request?.base?.sha
     const head = github.context.payload.pull_request?.head?.sha
 
-    const secret = core.getInput('github_secret')
     core.debug(`Ready to read report semgrep from ${report_path}`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
 
+    const secret = core.getInput('github_secret')
     const octokit = github.getOctokit(secret)
 
     const content = await fs.readFile(report_path, 'utf-8')

@@ -96,12 +96,12 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const report_path = core.getInput('report_path');
-            const issue_number = +github.context.payload.event.number;
+            const issue_number = github.context.issue.number;
             const r = github.context.repo.repo;
             const base = (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base) === null || _b === void 0 ? void 0 : _b.sha;
             const head = (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head) === null || _d === void 0 ? void 0 : _d.sha;
-            const secret = core.getInput('github_secret');
             core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+            const secret = core.getInput('github_secret');
             const octokit = github.getOctokit(secret);
             const content = yield fs_1.promises.readFile(report_path, 'utf-8');
             const params = comments.parseParams(content);
