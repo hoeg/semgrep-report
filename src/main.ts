@@ -23,11 +23,10 @@ async function run(): Promise<void> {
     const content = await fs.readFile(report_path, 'utf-8')
     const params = comments.parseParams(content)
 
-    const response = await octokit.rest.repos.compareCommits({
-      base,
-      head,
+    const response = await octokit.rest.repos.compareCommitsWithBasehead({
       owner: github.context.repo.owner,
-      repo: r
+      repo: r,
+      basehead: `${base}...${head}`
     })
 
     // Ensure that the request was successful.

@@ -109,11 +109,10 @@ function run() {
             }
             const content = yield fs_1.promises.readFile(report_path, 'utf-8');
             const params = comments.parseParams(content);
-            const response = yield octokit.rest.repos.compareCommits({
-                base,
-                head,
+            const response = yield octokit.rest.repos.compareCommitsWithBasehead({
                 owner: github.context.repo.owner,
-                repo: r
+                repo: r,
+                basehead: `${base}...${head}`
             });
             // Ensure that the request was successful.
             if (response.status !== 200) {
