@@ -79,12 +79,13 @@ async function run(): Promise<void> {
           line: p['end_line']
         })
       } else {
+        /*
         await octokit.rest.issues.create({
           owner,
           repo,
           title,
           body: p['body']
-        })
+        })*/
         core.info(
           `Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`
         )
