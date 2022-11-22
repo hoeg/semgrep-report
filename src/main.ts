@@ -1,7 +1,7 @@
 import * as comments from './comments'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {promises as fs} from 'fs'
+import {existsSync as fileExists, promises as fs} from 'fs'
 
 async function run(): Promise<void> {
   try {
@@ -16,6 +16,10 @@ async function run(): Promise<void> {
     const secret = core.getInput('github_secret')
     const octokit = github.getOctokit(secret)
 
+    if (!fileExists(report_path)) {
+      core.info(`${report_path} does not exist. Stopping action.`)
+      return
+    }
     const content = await fs.readFile(report_path, 'utf-8')
     const params = comments.parseParams(content)
 
@@ -72,7 +76,13 @@ async function run(): Promise<void> {
           line: p['end_line']
         })
       } else {
-        // create issue
+        /*
+        await octokit.rest.issues.create({
+          owner,
+          repo,
+          title,
+          body: p['body']
+        })*/
         core.info(
           `Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`
         )
