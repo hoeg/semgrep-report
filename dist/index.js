@@ -103,6 +103,10 @@ function run() {
             core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
             const secret = core.getInput('github_secret');
             const octokit = github.getOctokit(secret);
+            if (!(0, fs_1.existsSync)(report_path)) {
+                core.info(`${report_path} does not exist. Stopping action.`);
+                return;
+            }
             const content = yield fs_1.promises.readFile(report_path, 'utf-8');
             const params = comments.parseParams(content);
             const response = yield octokit.rest.repos.compareCommits({
@@ -149,7 +153,13 @@ function run() {
                     });
                 }
                 else {
-                    // create issue
+                    /*
+                    await octokit.rest.issues.create({
+                      owner,
+                      repo,
+                      title,
+                      body: p['body']
+                    })*/
                     core.info(`Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`);
                 }
             }
