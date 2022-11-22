@@ -8,14 +8,6 @@ inputs:
   github_secret:
     required: true
     description: Action secret
-  issue_number:
-    required: true
-    description: PR number to write the report to
-  commit_id:
-    required: true
-  repo:
-    required: true
-    description: This repository
 runs:
   using: 'node16'
   main: 'dist/index.js'

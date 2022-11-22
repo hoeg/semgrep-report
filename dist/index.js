@@ -96,22 +96,20 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const report_path = core.getInput('report_path');
-            const issue_number = +core.getInput('issue_number');
-            const r = core.getInput('repo');
-            const commitID = core.getInput('commit_id');
-            const secret = core.getInput('github_secret');
+            const issue_number = github.context.issue.number;
+            const r = github.context.repo.repo;
+            const base = (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base) === null || _b === void 0 ? void 0 : _b.sha;
+            const head = (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head) === null || _d === void 0 ? void 0 : _d.sha;
             core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+            const secret = core.getInput('github_secret');
             const octokit = github.getOctokit(secret);
             const content = yield fs_1.promises.readFile(report_path, 'utf-8');
             const params = comments.parseParams(content);
-            //lookup files changed
-            const base = (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base) === null || _b === void 0 ? void 0 : _b.sha;
-            const head = (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head) === null || _d === void 0 ? void 0 : _d.sha;
             const response = yield octokit.rest.repos.compareCommits({
                 base,
                 head,
                 owner: github.context.repo.owner,
-                repo: github.context.repo.repo
+                repo: r
             });
             // Ensure that the request was successful.
             if (response.status !== 200) {
@@ -138,12 +136,12 @@ function run() {
                     const repository = r.split('/');
                     const owner = repository[0];
                     const repo = repository[1];
-                    core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${commitID}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
+                    core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${head}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
                     yield octokit.rest.pulls.createReviewComment({
                         owner,
                         repo,
                         pull_number: issue_number,
-                        commit_id: commitID,
+                        commit_id: head,
                         body: p['body'],
                         path: p['path'],
                         start_line: p['start_line'],
