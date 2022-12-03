@@ -23,11 +23,10 @@ async function run(): Promise<void> {
     const content = await fs.readFile(report_path, 'utf-8')
     const params = comments.parseParams(content)
 
-    const response = await octokit.rest.repos.compareCommits({
-      base,
-      head,
+    const response = await octokit.rest.repos.compareCommitsWithBasehead({
       owner: github.context.repo.owner,
-      repo: r
+      repo: r,
+      basehead: `${base}...${head}`
     })
 
     // Ensure that the request was successful.
@@ -41,7 +40,7 @@ async function run(): Promise<void> {
     // Ensure that the head commit is ahead of the base commit.
     if (response.data.status !== 'ahead') {
       core.setFailed(
-        `The head commit for this ${github.context.eventName} event is not ahead of the base commit. ` +
+        `The head commit (${head}) for this ${github.context.eventName} event is not ahead of the base commit (${base}). Got ${response.data.status}.` +
           "Please submit an issue on this action's GitHub repo."
       )
     }
