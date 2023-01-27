@@ -54,11 +54,13 @@ test('create fix content', async () => {
   }],
     "version": "0.120.0"
   }`
-  const suggestion = ""
-  const message = ""
+  const suggestion = ''
+  const message = ''
   let res = comments.parseParams(input)
   expect(res.length).toBe(1)
-  expect(res[0]["body"]).toBe("Finding: External data is not allowed.\n\nConsider if\n\`\`\`suggestion\nproposed fix\n\`\`\`\nfixes the issue.")
+  expect(res[0]['body']).toBe(
+    'Finding: External data is not allowed.\n\nConsider if\n```suggestion\nproposed fix\n```\nfixes the issue.'
+  )
 })
 
 test('create finding content', async () => {
@@ -113,11 +115,13 @@ test('create finding content', async () => {
   }],
     "version": "0.120.0"
   }`
-  const suggestion = ""
-  const message = ""
+  const suggestion = ''
+  const message = ''
   let res = comments.parseParams(input)
   expect(res.length).toBe(1)
-  expect(res[0]["body"]).toBe("Finding: External data is not allowed.\n\n\`\`\`\ndata \"external\" \"test\" {\n  source = [\"whoami\"]\n}\n\`\`\`")
+  expect(res[0]['body']).toBe(
+    'Finding: External data is not allowed.\n\n```\ndata "external" "test" {\n  source = ["whoami"]\n}\n```'
+  )
 })
 
 test('create finding content', async () => {
@@ -244,8 +248,8 @@ test('create finding content', async () => {
 }],
     "version": "0.120.0"
   }`
-  const suggestion = ""
-  const message = ""
+  const suggestion = ''
+  const message = ''
   let res = comments.parseParams(input)
   expect(res.length).toBe(3)
 })
