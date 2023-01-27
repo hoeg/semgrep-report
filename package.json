@@ -1,5 +1,5 @@
 {
-  "name": "typescript-action",
+  "name": "semgrep-report-action",
   "version": "0.0.1",
   "private": true,
   "description": "Github action for parsing Semgrep reports",
@@ -22,7 +22,7 @@
     "node",
     "setup"
   ],
-  "author": "",
+  "author": "hoeg",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.10.0",
