@@ -17,8 +17,7 @@ async function run(): Promise<void> {
     const octokit = github.getOctokit(secret)
 
     if (!fileExists(report_path)) {
-      core.info(`${report_path} does not exist. Stopping action.`)
-      return
+      core.setFailed(`${report_path} does not exist. Stopping action.`)
     }
     const content = await fs.readFile(report_path, 'utf-8')
     const params = comments.parseParams(content)
