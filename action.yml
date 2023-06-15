@@ -1,4 +1,4 @@
-name: 'Semgrep reporting'
+name: 'Semgrep Reporting'
 description: 'Report Semgrep findimgs to PRs with suggested changes'
 author: 'Peter Hoeg Steffensen'
 inputs:
