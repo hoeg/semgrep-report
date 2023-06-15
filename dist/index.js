@@ -104,8 +104,7 @@ function run() {
             const secret = core.getInput('github_secret');
             const octokit = github.getOctokit(secret);
             if (!(0, fs_1.existsSync)(report_path)) {
-                core.info(`${report_path} does not exist. Stopping action.`);
-                return;
+                core.setFailed(`${report_path} does not exist. Stopping action.`);
             }
             const content = yield fs_1.promises.readFile(report_path, 'utf-8');
             const params = comments.parseParams(content);
@@ -162,7 +161,6 @@ function run() {
                     core.info(`Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`);
                 }
             }
-            //core.setOutput('time', new Date().toTimeString())
         }
         catch (error) {
             if (error instanceof Error)
