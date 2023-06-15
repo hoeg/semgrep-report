@@ -86,7 +86,6 @@ async function run(): Promise<void> {
         )
       }
     }
-    //core.setOutput('time', new Date().toTimeString())
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }

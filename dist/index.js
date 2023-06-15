@@ -161,7 +161,6 @@ function run() {
                     core.info(`Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`);
                 }
             }
-            //core.setOutput('time', new Date().toTimeString())
         }
         catch (error) {
             if (error instanceof Error)
