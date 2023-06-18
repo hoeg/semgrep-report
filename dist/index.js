@@ -90,7 +90,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const comments = __importStar(__nccwpck_require__(1910));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const fs_1 = __nccwpck_require__(7147);
+const node_fs_1 = __nccwpck_require__(7561);
 function run() {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
@@ -100,13 +100,15 @@ function run() {
             const r = github.context.repo.repo;
             const base = (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base) === null || _b === void 0 ? void 0 : _b.sha;
             const head = (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head) === null || _d === void 0 ? void 0 : _d.sha;
-            core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
             const secret = core.getInput('github_secret');
             const octokit = github.getOctokit(secret);
-            if (!(0, fs_1.existsSync)(report_path)) {
+            core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+            if (!(0, node_fs_1.existsSync)(report_path)) {
                 core.setFailed(`${report_path} does not exist. Stopping action.`);
+                return;
             }
-            const content = yield fs_1.promises.readFile(report_path, 'utf-8');
+            const content = yield node_fs_1.promises.readFile(report_path, 'utf-8');
+            core.debug(`Read report - parsing content`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
             const params = comments.parseParams(content);
             const response = yield octokit.rest.repos.compareCommitsWithBasehead({
                 owner: github.context.repo.owner,
@@ -138,7 +140,7 @@ function run() {
                     const repository = r.split('/');
                     const owner = repository[0];
                     const repo = repository[1];
-                    core.debug(`create comment with: ${owner}, ${repo}, ${issue_number}, (${head}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
+                    core.debug(`create comment with: owner: ${owner}, repo: ${repo}, issue_number: ${issue_number}, head: (${head}) finding info: ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
                     yield octokit.rest.pulls.createReviewComment({
                         owner,
                         repo,
@@ -9828,6 +9830,14 @@ module.exports = require("https");
 
 "use strict";
 module.exports = require("net");
+
+/***/ }),
+
+/***/ 7561:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:fs");
 
 /***/ }),
 
