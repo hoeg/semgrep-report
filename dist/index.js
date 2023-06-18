@@ -77,99 +77,87 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const comments = __importStar(__nccwpck_require__(1910));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const node_fs_1 = __nccwpck_require__(7561);
-function run() {
-    var _a, _b, _c, _d;
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const report_path = core.getInput('report_path');
-            const issue_number = github.context.issue.number;
-            const r = github.context.repo.repo;
-            const base = (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base) === null || _b === void 0 ? void 0 : _b.sha;
-            const head = (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head) === null || _d === void 0 ? void 0 : _d.sha;
-            const secret = core.getInput('github_secret');
-            const octokit = github.getOctokit(secret);
-            core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-            if (!(0, node_fs_1.existsSync)(report_path)) {
-                core.setFailed(`${report_path} does not exist. Stopping action.`);
-                return;
+async function run() {
+    try {
+        const report_path = core.getInput('report_path');
+        const issue_number = github.context.issue.number;
+        const r = github.context.repo.repo;
+        const base = github.context.payload.pull_request?.base?.sha;
+        const head = github.context.payload.pull_request?.head?.sha;
+        const secret = core.getInput('github_secret');
+        const octokit = github.getOctokit(secret);
+        core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+        if (!(0, node_fs_1.existsSync)(report_path)) {
+            core.setFailed(`${report_path} does not exist. Stopping action.`);
+            return;
+        }
+        const content = await node_fs_1.promises.readFile(report_path, 'utf-8');
+        core.debug(`Read report - parsing content`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+        const params = comments.parseParams(content);
+        const response = await octokit.rest.repos.compareCommitsWithBasehead({
+            owner: github.context.repo.owner,
+            repo: r,
+            basehead: `${base}...${head}`
+        });
+        // Ensure that the request was successful.
+        if (response.status !== 200) {
+            core.setFailed(`The GitHub API for comparing the base and head commits for this ${github.context.eventName} event returned ${response.status}, expected 200. ` +
+                "Please submit an issue on this action's GitHub repo.");
+        }
+        // Ensure that the head commit is ahead of the base commit.
+        if (response.data.status !== 'ahead') {
+            core.setFailed(`The head commit (${head}) for this ${github.context.eventName} event is not ahead of the base commit (${base}). Got ${response.data.status}.` +
+                "Please submit an issue on this action's GitHub repo.");
+        }
+        const changedFiles = response.data.files;
+        if (changedFiles === undefined) {
+            core.setFailed(`no files changed`);
+            return;
+        }
+        const filenames = [];
+        for (const f of changedFiles) {
+            core.debug(`found file ${f.filename} -`);
+            filenames.push(f.filename);
+        }
+        for (const p of params) {
+            if (filenames.includes(p['path'])) {
+                const repository = r.split('/');
+                const owner = repository[0];
+                const repo = repository[1];
+                core.debug(`create comment with: owner: ${owner}, repo: ${repo}, issue_number: ${issue_number}, head: (${head}) finding info: ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
+                await octokit.rest.pulls.createReviewComment({
+                    owner,
+                    repo,
+                    pull_number: issue_number,
+                    commit_id: head,
+                    body: p['body'],
+                    path: p['path'],
+                    start_line: p['start_line'],
+                    line: p['end_line']
+                });
             }
-            const content = yield node_fs_1.promises.readFile(report_path, 'utf-8');
-            core.debug(`Read report - parsing content`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-            const params = comments.parseParams(content);
-            const response = yield octokit.rest.repos.compareCommitsWithBasehead({
-                owner: github.context.repo.owner,
-                repo: r,
-                basehead: `${base}...${head}`
-            });
-            // Ensure that the request was successful.
-            if (response.status !== 200) {
-                core.setFailed(`The GitHub API for comparing the base and head commits for this ${github.context.eventName} event returned ${response.status}, expected 200. ` +
-                    "Please submit an issue on this action's GitHub repo.");
-            }
-            // Ensure that the head commit is ahead of the base commit.
-            if (response.data.status !== 'ahead') {
-                core.setFailed(`The head commit (${head}) for this ${github.context.eventName} event is not ahead of the base commit (${base}). Got ${response.data.status}.` +
-                    "Please submit an issue on this action's GitHub repo.");
-            }
-            const changedFiles = response.data.files;
-            if (changedFiles === undefined) {
-                core.setFailed(`no files changed`);
-                return;
-            }
-            const filenames = [];
-            for (const f of changedFiles) {
-                core.debug(`found file ${f.filename} -`);
-                filenames.push(f.filename);
-            }
-            for (const p of params) {
-                if (filenames.includes(p['path'])) {
-                    const repository = r.split('/');
-                    const owner = repository[0];
-                    const repo = repository[1];
-                    core.debug(`create comment with: owner: ${owner}, repo: ${repo}, issue_number: ${issue_number}, head: (${head}) finding info: ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`);
-                    yield octokit.rest.pulls.createReviewComment({
-                        owner,
-                        repo,
-                        pull_number: issue_number,
-                        commit_id: head,
-                        body: p['body'],
-                        path: p['path'],
-                        start_line: p['start_line'],
-                        line: p['end_line']
-                    });
-                }
-                else {
-                    /*
-                    await octokit.rest.issues.create({
-                      owner,
-                      repo,
-                      title,
-                      body: p['body']
-                    })*/
-                    core.info(`Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`);
-                }
+            else {
+                /*
+                await octokit.rest.issues.create({
+                  owner,
+                  repo,
+                  title,
+                  body: p['body']
+                })*/
+                core.info(`Path: ${p['path']} no found in ${changedFiles}. Create Issue for ${p['body']}`);
             }
         }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(`Report failed: ${error.message} - ${error.stack}`);
-            }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.setFailed(`Report failed: ${error.message} - ${error.stack}`);
         }
-    });
+    }
 }
 run();
 
@@ -2117,6 +2105,10 @@ function checkBypass(reqUrl) {
     if (!reqUrl.hostname) {
         return false;
     }
+    const reqHost = reqUrl.hostname;
+    if (isLoopbackAddress(reqHost)) {
+        return true;
+    }
     const noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || '';
     if (!noProxy) {
         return false;
@@ -2142,13 +2134,24 @@ function checkBypass(reqUrl) {
         .split(',')
         .map(x => x.trim().toUpperCase())
         .filter(x => x)) {
-        if (upperReqHosts.some(x => x === upperNoProxyItem)) {
+        if (upperNoProxyItem === '*' ||
+            upperReqHosts.some(x => x === upperNoProxyItem ||
+                x.endsWith(`.${upperNoProxyItem}`) ||
+                (upperNoProxyItem.startsWith('.') &&
+                    x.endsWith(`${upperNoProxyItem}`)))) {
             return true;
         }
     }
     return false;
 }
 exports.checkBypass = checkBypass;
+function isLoopbackAddress(host) {
+    const hostLower = host.toLowerCase();
+    return (hostLower === 'localhost' ||
+        hostLower.startsWith('127.') ||
+        hostLower.startsWith('[::1]') ||
+        hostLower.startsWith('[0:0:0:0:0:0:0:1]'));
+}
 //# sourceMappingURL=proxy.js.map
 
 /***/ }),
@@ -6296,7 +6299,9 @@ function fetch(url, opts) {
 				return;
 			}
 
-			destroyStream(response.body, err);
+			if (response && response.body) {
+				destroyStream(response.body, err);
+			}
 		});
 
 		/* c8 ignore next 18 */
