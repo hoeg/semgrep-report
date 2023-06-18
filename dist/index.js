@@ -87,8 +87,8 @@ async function run() {
         const report_path = core.getInput('report_path');
         const issue_number = github.context.issue.number;
         const r = github.context.repo.repo;
-        const base = github.context.payload.pull_request?.base?.sha;
-        const head = github.context.payload.pull_request?.head?.sha;
+        const base = github.context.payload.pull_request?.base?.ref;
+        const head = github.context.payload.pull_request?.head?.ref;
         const secret = core.getInput('github_secret');
         const octokit = github.getOctokit(secret);
         core.debug(`Ready to read report semgrep from ${report_path}`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
@@ -102,7 +102,7 @@ async function run() {
         const response = await octokit.rest.repos.compareCommitsWithBasehead({
             owner: github.context.repo.owner,
             repo: r,
-            basehead: `${base}...${head}`
+            basehead: `main...${head}`
         });
         // Ensure that the request was successful.
         if (response.status !== 200) {
