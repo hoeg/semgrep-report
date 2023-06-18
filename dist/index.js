@@ -165,8 +165,9 @@ function run() {
             }
         }
         catch (error) {
-            if (error instanceof Error)
-                core.setFailed(error.message);
+            if (error instanceof Error) {
+                core.setFailed(`Report failed: ${error.message} - ${error.stack}`);
+            }
         }
     });
 }
