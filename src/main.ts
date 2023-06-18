@@ -9,7 +9,7 @@ async function run(): Promise<void> {
     const issue_number: number = github.context.issue.number
     const r: string = github.context.repo.repo
     const base = github.context.payload.pull_request?.base?.ref
-    const head = github.context.payload.pull_request?.head?.ref
+    const head = github.context.payload.pull_request?.head?.ref?
 
     const secret = core.getInput('github_secret')
     const octokit = github.getOctokit(secret)
