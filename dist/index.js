@@ -87,7 +87,7 @@ async function run() {
         const report_path = core.getInput('report_path');
         const issue_number = github.context.issue.number;
         const r = github.context.repo.repo;
-        const base = 'main'; //github.context.payload.pull_request?.base.sha
+        const base = github.context.payload.pull_request?.base.sha;
         const head = github.context.payload.pull_request?.head.sha;
         const secret = core.getInput('github_secret');
         const octokit = github.getOctokit(secret);
@@ -99,7 +99,7 @@ async function run() {
         const content = await node_fs_1.promises.readFile(report_path, 'utf-8');
         core.debug(`Read report - parsing content`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
         const params = comments.parseParams(content);
-        core.info(`owner: ${github.context.repo.owner}, repo: ${r}, basehead: ${base}...${head} - basesha ${github.context.payload.pull_request?.base}`);
+        core.info(`owner: ${github.context.repo.owner}, repo: ${r}, basehead: ${base}...${head}`);
         const response = await octokit.rest.repos.compareCommitsWithBasehead({
             owner: github.context.repo.owner,
             repo: r,
