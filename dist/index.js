@@ -99,6 +99,7 @@ async function run() {
         const content = await node_fs_1.promises.readFile(report_path, 'utf-8');
         core.debug(`Read report - parsing content`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
         const params = comments.parseParams(content);
+        core.info(`owner: ${github.context.repo.owner}, repo: ${r}, basehead: ${base}...${head}`);
         const response = await octokit.rest.repos.compareCommitsWithBasehead({
             owner: github.context.repo.owner,
             repo: r,
