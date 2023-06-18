@@ -102,7 +102,7 @@ async function run() {
         const response = await octokit.rest.repos.compareCommitsWithBasehead({
             owner: github.context.repo.owner,
             repo: r,
-            basehead: `main...${head}`
+            basehead: `${base}...${head}`
         });
         // Ensure that the request was successful.
         if (response.status !== 200) {
