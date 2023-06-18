@@ -2,7 +2,7 @@ name: Semgrep Scan
 on:
   pull_request: {}
   push:
-    branches: ["master", "main"]
+    branches: ["*", "!main"]
     
 jobs:
   build: # make sure build/ci work properly
