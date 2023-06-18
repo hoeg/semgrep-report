@@ -8,8 +8,8 @@ async function run(): Promise<void> {
     const report_path: string = core.getInput('report_path')
     const issue_number: number = github.context.issue.number
     const r: string = github.context.repo.repo
-    const base = github.context.payload.pull_request?.base?.ref
-    const head = github.context.payload.pull_request?.head?.ref?
+    const base = 'main' //github.context.payload.pull_request?.base.sha
+    const head = github.context.payload.pull_request?.head.sha
 
     const secret = core.getInput('github_secret')
     const octokit = github.getOctokit(secret)
@@ -24,7 +24,7 @@ async function run(): Promise<void> {
     const params = comments.parseParams(content)
 
     core.info(
-      `owner: ${github.context.repo.owner}, repo: ${r}, basehead: ${base}...${head}`
+      `owner: ${github.context.repo.owner}, repo: ${r}, basehead: ${base}...${head} - basesha ${github.context.payload.pull_request?.base}`
     )
 
     const response = await octokit.rest.repos.compareCommitsWithBasehead({
