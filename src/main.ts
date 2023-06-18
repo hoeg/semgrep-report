@@ -1,7 +1,7 @@
 import * as comments from './comments'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {existsSync as fileExists, promises as fs} from 'fs'
+import {existsSync as fileExists, promises as fs} from 'node:fs'
 
 async function run(): Promise<void> {
   try {
@@ -11,15 +11,16 @@ async function run(): Promise<void> {
     const base = github.context.payload.pull_request?.base?.sha
     const head = github.context.payload.pull_request?.head?.sha
 
-    core.debug(`Ready to read report semgrep from ${report_path}`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-
     const secret = core.getInput('github_secret')
     const octokit = github.getOctokit(secret)
 
+    core.debug(`Ready to read report semgrep from ${report_path}`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
     if (!fileExists(report_path)) {
       core.setFailed(`${report_path} does not exist. Stopping action.`)
+      return
     }
     const content = await fs.readFile(report_path, 'utf-8')
+    core.debug(`Read report - parsing content`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
     const params = comments.parseParams(content)
 
     const response = await octokit.rest.repos.compareCommitsWithBasehead({
@@ -61,7 +62,7 @@ async function run(): Promise<void> {
         const owner: string = repository[0]
         const repo: string = repository[1]
         core.debug(
-          `create comment with: ${owner}, ${repo}, ${issue_number}, (${head}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`
+          `create comment with: owner: ${owner}, repo: ${repo}, issue_number: ${issue_number}, head: (${head}) finding info: ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`
         )
         await octokit.rest.pulls.createReviewComment({
           owner,
