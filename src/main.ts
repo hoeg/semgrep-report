@@ -73,7 +73,8 @@ async function run(): Promise<void> {
           commit_id: head,
           body: p['body'],
           path: p['path'],
-          start_line: p['start_line'],
+          start_line:
+            p['start_line'] === p['end_line'] ? undefined : p['start_line'],
           line: p['end_line']
         })
       } else {
