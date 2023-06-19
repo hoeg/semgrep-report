@@ -7,7 +7,6 @@ async function run(): Promise<void> {
   try {
     const report_path: string = core.getInput('report_path')
     const issue_number: number = github.context.issue.number
-    const r: string = github.context.repo.repo
     const base = github.context.payload.pull_request?.base.sha
     const head = github.context.payload.pull_request?.head.sha
 
@@ -24,12 +23,12 @@ async function run(): Promise<void> {
     const params = comments.parseParams(content)
 
     core.info(
-      `owner: ${github.context.repo.owner}, repo: ${r}, basehead: ${base}...${head}`
+      `owner: ${github.context.repo.owner}, repo: ${github.context.repo.repo}, basehead: ${base}...${head}`
     )
 
     const response = await octokit.rest.repos.compareCommitsWithBasehead({
       owner: github.context.repo.owner,
-      repo: r,
+      repo: github.context.repo.repo,
       basehead: `${base}...${head}`
     })
 
@@ -62,9 +61,8 @@ async function run(): Promise<void> {
 
     for (const p of params) {
       if (filenames.includes(p['path'])) {
-        const repository = r.split('/')
-        const owner: string = repository[0]
-        const repo: string = repository[1]
+        const owner: string = github.context.repo.owner
+        const repo: string = github.context.repo.repo
         core.debug(
           `create comment with: owner: ${owner}, repo: ${repo}, issue_number: ${issue_number}, head: (${head}) finding info: ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`
         )
