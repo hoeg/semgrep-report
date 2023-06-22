@@ -25,4 +25,7 @@ in your action as the action looks for comparison information using `github.cont
   with:
     github_secret: ${{secrets.GITHUB_TOKEN}}
     report_path: ./semgrep.json
+    base_path: /
 ```
+
+`base_path` is optional and only needs to be set if you have not checked out the repository to `/`
