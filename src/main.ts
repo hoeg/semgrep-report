@@ -6,6 +6,7 @@ import {existsSync as fileExists, promises as fs} from 'node:fs'
 async function run(): Promise<void> {
   try {
     const report_path: string = core.getInput('report_path')
+    const src_base_path: string = core.getInput('base_path')
     const issue_number: number = github.context.issue.number
     const base = github.context.payload.pull_request?.base.sha
     const head = github.context.payload.pull_request?.head.sha
@@ -20,7 +21,7 @@ async function run(): Promise<void> {
     }
     const content = await fs.readFile(report_path, 'utf-8')
     core.debug(`Read report - parsing content`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-    const params = comments.parseParams(content)
+    const params = comments.parseParams(content, src_base_path)
 
     core.info(
       `owner: ${github.context.repo.owner}, repo: ${github.context.repo.repo}, basehead: ${base}...${head}`
