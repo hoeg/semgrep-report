@@ -18,7 +18,7 @@ function finding(hit, message) {
     return comment.concat('```\n', hit, '\n```');
 }
 exports.finding = finding;
-function parseParams(scanResult) {
+function parseParams(scanResult, srcBasePath) {
     const params = [];
     const output = JSON.parse(scanResult);
     for (const result of output.results) {
@@ -32,7 +32,13 @@ function parseParams(scanResult) {
         else {
             info = finding(hit, message);
         }
-        const file = result.path;
+        let file = result.path;
+        if (file.startsWith(srcBasePath)) {
+            file = file.substring(srcBasePath.length);
+            if (file.startsWith('/')) {
+                file = file.substring(1);
+            }
+        }
         const startLine = result.start.line;
         const endLine = result.end.line;
         params.push({
@@ -85,6 +91,7 @@ const node_fs_1 = __nccwpck_require__(7561);
 async function run() {
     try {
         const report_path = core.getInput('report_path');
+        const src_base_path = core.getInput('base_path');
         const issue_number = github.context.issue.number;
         const base = github.context.payload.pull_request?.base.sha;
         const head = github.context.payload.pull_request?.head.sha;
@@ -97,7 +104,7 @@ async function run() {
         }
         const content = await node_fs_1.promises.readFile(report_path, 'utf-8');
         core.debug(`Read report - parsing content`); // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
-        const params = comments.parseParams(content);
+        const params = comments.parseParams(content, src_base_path);
         core.info(`owner: ${github.context.repo.owner}, repo: ${github.context.repo.repo}, basehead: ${base}...${head}`);
         const response = await octokit.rest.repos.compareCommitsWithBasehead({
             owner: github.context.repo.owner,

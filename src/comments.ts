@@ -20,7 +20,10 @@ type CommentParameters = {
   end_line: number
 }
 
-export function parseParams(scanResult: string): CommentParameters[] {
+export function parseParams(
+  scanResult: string,
+  srcBasePath: string
+): CommentParameters[] {
   const params: CommentParameters[] = []
   const output = JSON.parse(scanResult)
   for (const result of output.results) {
@@ -33,7 +36,13 @@ export function parseParams(scanResult: string): CommentParameters[] {
     } else {
       info = finding(hit, message)
     }
-    const file = result.path
+    let file = result.path
+    if (file.startsWith(srcBasePath)) {
+      file = file.substring(srcBasePath.length)
+      if (file.startsWith('/')) {
+        file = file.substring(1)
+      }
+    }
     const startLine = result.start.line
     const endLine = result.end.line
 
