@@ -1,30 +1,35 @@
 import * as comments from './comments'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {existsSync as fileExists, promises as fs} from 'fs'
+import {existsSync as fileExists, promises as fs} from 'node:fs'
 
 async function run(): Promise<void> {
   try {
     const report_path: string = core.getInput('report_path')
+    const src_base_path: string = core.getInput('base_path')
     const issue_number: number = github.context.issue.number
-    const r: string = github.context.repo.repo
-    const base = github.context.payload.pull_request?.base?.sha
-    const head = github.context.payload.pull_request?.head?.sha
-
-    core.debug(`Ready to read report semgrep from ${report_path}`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+    const base = github.context.payload.pull_request?.base.sha
+    const head = github.context.payload.pull_request?.head.sha
 
     const secret = core.getInput('github_secret')
     const octokit = github.getOctokit(secret)
 
+    core.debug(`Ready to read report semgrep from ${report_path}`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
     if (!fileExists(report_path)) {
       core.setFailed(`${report_path} does not exist. Stopping action.`)
+      return
     }
     const content = await fs.readFile(report_path, 'utf-8')
-    const params = comments.parseParams(content)
+    core.debug(`Read report - parsing content`) // debug is only output if you set the secret `ACTIONS_STEP_DEBUG` to true
+    const params = comments.parseParams(content, src_base_path)
+
+    core.info(
+      `owner: ${github.context.repo.owner}, repo: ${github.context.repo.repo}, basehead: ${base}...${head}`
+    )
 
     const response = await octokit.rest.repos.compareCommitsWithBasehead({
       owner: github.context.repo.owner,
-      repo: r,
+      repo: github.context.repo.repo,
       basehead: `${base}...${head}`
     })
 
@@ -57,11 +62,10 @@ async function run(): Promise<void> {
 
     for (const p of params) {
       if (filenames.includes(p['path'])) {
-        const repository = r.split('/')
-        const owner: string = repository[0]
-        const repo: string = repository[1]
+        const owner: string = github.context.repo.owner
+        const repo: string = github.context.repo.repo
         core.debug(
-          `create comment with: ${owner}, ${repo}, ${issue_number}, (${head}) ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`
+          `create comment with: owner: ${owner}, repo: ${repo}, issue_number: ${issue_number}, head: (${head}) finding info: ${p['body']}, ${p['path']} ${p['start_line']} ${p['end_line']}`
         )
         await octokit.rest.pulls.createReviewComment({
           owner,
@@ -70,7 +74,8 @@ async function run(): Promise<void> {
           commit_id: head,
           body: p['body'],
           path: p['path'],
-          start_line: p['start_line'],
+          start_line:
+            p['start_line'] === p['end_line'] ? undefined : p['start_line'],
           line: p['end_line']
         })
       } else {
@@ -87,7 +92,9 @@ async function run(): Promise<void> {
       }
     }
   } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
+    if (error instanceof Error) {
+      core.setFailed(`Report failed: ${error.message} - ${error.stack}`)
+    }
   }
 }
 

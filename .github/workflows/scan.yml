@@ -1,8 +1,6 @@
 name: Semgrep Scan
 on:
   pull_request: {}
-  push:
-    branches: ["master", "main"]
     
 jobs:
   build: # make sure build/ci work properly
@@ -22,7 +20,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Scan
-        run: touch semgrep.json
         run: semgrep --config "p/eslint-plugin-security" -l ts --json --output=semgrep.json .
       - uses: ./
         with:

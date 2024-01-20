@@ -8,6 +8,8 @@ inputs:
   github_secret:
     required: true
     description: Action secret
+  base_path:
+    description: Base path of the checked out repository
 runs:
   using: 'node16'
   main: 'dist/index.js'
