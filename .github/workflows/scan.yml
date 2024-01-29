@@ -20,7 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Scan
-        run: semgrep --config "p/eslint-plugin-security" -l ts --json --output=semgrep.json .
+        run: semgrep --config "p/eslint-plugin-security" --json --output=semgrep.json .
       - uses: ./
         with:
           github_secret: ${{secrets.GITHUB_TOKEN}}
