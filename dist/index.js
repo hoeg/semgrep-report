@@ -33,7 +33,7 @@ function parseParams(scanResult, srcBasePath) {
             info = finding(hit, message);
         }
         let file = result.path;
-        if (file.startsWith(srcBasePath)) {
+        if (file.startsWith(srcBasePath) && srcBasePath.length != 0) {
             file = file.substring(srcBasePath.length);
             if (file.startsWith('/')) {
                 file = file.substring(1);
