@@ -33,7 +33,7 @@ function parseParams(scanResult, srcBasePath) {
             info = finding(hit, message);
         }
         let file = result.path;
-        if (file.startsWith(srcBasePath) && srcBasePath.length != 0) {
+        if (file.startsWith(srcBasePath) && srcBasePath.length !== 0) {
             file = file.substring(srcBasePath.length);
             if (file.startsWith('/')) {
                 file = file.substring(1);
@@ -727,7 +727,7 @@ class OidcClient {
                 .catch(error => {
                 throw new Error(`Failed to get ID Token. \n 
         Error Code : ${error.statusCode}\n 
-        Error Message: ${error.result.message}`);
+        Error Message: ${error.message}`);
             });
             const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
             if (!id_token) {
