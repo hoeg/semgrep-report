@@ -30,7 +30,7 @@
     "dist": "^0.1.2"
   },
   "devDependencies": {
-    "@types/babel__core": "^7.20.1",
+    "@types/babel__core": "^7.20.5",
     "@types/babel__generator": "^7.6.4",
     "@types/node": "^20.3.1",
     "@typescript-eslint/eslint-plugin": "^6.5.0",
